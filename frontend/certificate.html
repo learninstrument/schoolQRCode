@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View and print NBTE NSQ student certificate.">
+    <title>View Certificate — NBTE</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --green-dark: #1a6b3c;
+            --green: #228B22;
+            --green-glow: rgba(34, 139, 34, 0.2);
+            --cert-blue: #283593;
+            --text-primary: #1a2e1a;
+            --text-secondary: #5a6e5a;
+            --border-color: #d4e5d4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #e8ece8;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* ── Top Bar ── */
+        .top-bar {
+            background: var(--green-dark);
+            padding: 0.8rem 0;
+            color: #fff;
+        }
+        .top-bar .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: opacity 0.2s;
+        }
+        .top-bar a:hover { opacity: 0.8; }
+
+        /* ── Action Buttons ── */
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 1.2rem 0;
+            background: #f0f3f0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .btn-action {
+            border-radius: 10px;
+            padding: 0.6rem 1.4rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-print { background: var(--green); color: #fff; }
+        .btn-print:hover { background: var(--green-dark); box-shadow: 0 4px 16px var(--green-glow); }
+        .btn-download { background: var(--cert-blue); color: #fff; }
+        .btn-download:hover { background: #1a237e; box-shadow: 0 4px 16px rgba(40,53,147,0.2); }
+        .btn-back-action { background: #fff; color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-back-action:hover { color: var(--green); border-color: var(--green); }
+
+        /* ══════════════════════════════════════════════════
+           A4 CERTIFICATE LAYOUT
+           ══════════════════════════════════════════════════ */
+
+        .certificate-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .certificate-page {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            background: #fff;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* The blank template (with watermark & signature) */
+        .certificate-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* Overlay container for absolute positioning */
+        .cert-content {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
+
+        /* ── Registration Number (Top Left) ── */
+        .cert-reg {
+            position: absolute;
+            top: 15%;
+            left: 7%;
+            padding: 3mm 5mm;
+            font-family: 'Inter', sans-serif;
+            font-size: 10pt;
+            font-weight: 600;
+            color: #222;
+            text-transform: uppercase;
+        }
+
+        /* ── Logo Area (Top Center) ── */
+        .cert-logo-area {
+            position: absolute;
+            top: 4%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 90mm;
+        }
+        .cert-logo-img {
+            width: 38mm;
+            height: auto;
+            margin-bottom: 2mm;
+        }
+        .cert-logo-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 7.5pt;
+            font-weight: 800;
+            color: #0b5e28;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        /* ── Photo (Top Right) ── */
+        .cert-photo {
+            position: absolute;
+            top: 10%;
+            right: 8%;
+            width: 38mm;
+            height: 48mm;
+            object-fit: cover;
+        }
+
+        /* ── Body Text (Center) ── */
+        .cert-body {
+            position: absolute;
+            top: 32%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .cert-title-nsq {
+            font-family: 'Inter', sans-serif;
+            font-size: 21pt;
+            font-weight: 700;
+            color: var(--cert-blue);
+            margin-bottom: 2mm;
+        }
+
+        .cert-title-certificate {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 50pt;
+            font-weight: 700;
+            color: var(--cert-blue);
+            margin-bottom: 8mm;
+        }
+
+        .cert-text-certify {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 16pt;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 8mm;
+        }
+
+        .cert-name {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 32pt;
+            font-weight: 700;
+            color: #111;
+            display: inline-block;
+            border-bottom: 1.5px solid #222;
+            padding: 0 15mm 2mm 15mm;
+            margin-bottom: 8mm;
+            min-width: 120mm;
+        }
+
+        .cert-text-achieved {
+            font-family: 'Inter', sans-serif;
+            font-size: 14pt;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 3mm;
+        }
+
+        .cert-level {
+            font-family: 'Inter', sans-serif;
+            font-size: 18pt;
+            font-weight: 800;
+            color: var(--cert-blue);
+            text-transform: uppercase;
+        }
+
+        /* ── Footer ── */
+        .cert-qr {
+            position: absolute;
+            bottom: 4%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .cert-qr-img {
+            width: 32mm;
+            height: 32mm;
+            border: 1px solid var(--green);
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .cert-qr-label {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 6pt;
+            color: #666;
+            margin-top: 2px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .cert-date-area {
+            position: absolute;
+            bottom: 9%;
+            right: 8%;
+            text-align: center;
+        }
+        .cert-date-label {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 10pt;
+            color: #222;
+            margin-bottom: 2mm;
+        }
+        .cert-date-box {
+            border: 1px solid #777;
+            padding: 2mm 5mm;
+            font-family: 'Inter', sans-serif;
+            font-size: 10pt;
+            font-weight: 700;
+            color: #111;
+        }
+
+        /* Loading / Error */
+        .status-card {
+            max-width: 500px;
+            margin: 4rem auto;
+            text-align: center;
+            padding: 3rem;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .status-card i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+        .status-card.loading i { color: var(--green); }
+        .status-card.error i { color: #c62828; }
+
+        /* ══════════════════════════════════════════════════
+           PRINT STYLES
+           ══════════════════════════════════════════════════ */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            body {
+                background: #fff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .top-bar, .action-bar, .status-card { display: none !important; }
+            .certificate-wrapper { padding: 0; display: block; }
+            .certificate-page { box-shadow: none; page-break-inside: avoid; }
+        }
+
+        @media (max-width: 850px) {
+            .certificate-page {
+                width: 95vw;
+                height: calc(95vw * 1.4142);
+            }
+            /* Scale positions roughly for mobile view */
+            .cert-title-nsq { font-size: 4vw; }
+            .cert-title-certificate { font-size: 9vw; }
+            .cert-name { font-size: 6vw; min-width: 50vw; }
+            .cert-reg { font-size: 1.5vw; padding: 1vw 2vw; }
+            .cert-date-box { font-size: 1.8vw; padding: 1vw 2vw; }
+            .cert-qr-img { width: 12vw; height: 12vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="container">
+            <a href="admin.html"><i class="bi bi-arrow-left"></i> Back to Admin</a>
+            <span style="font-size: 0.85rem; opacity: 0.7;">Certificate View</span>
+        </div>
+    </div>
+
+    <div class="action-bar" id="action-bar" style="display: none;">
+        <button class="btn-action btn-print" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+        <button class="btn-action btn-download" onclick="downloadCertificate()">
+            <i class="bi bi-download"></i> Download PDF
+        </button>
+        <a href="admin.html" class="btn-action btn-back-action">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="certificate-wrapper" id="certificate-wrapper" style="display: none;">
+        <div class="certificate-page">
+            
+            <!-- BACKGROUND IMAGE: The blank template that contains the watermark & signature -->
+            <img class="certificate-bg" src="../backend/images/certificate-template1.png" alt="Template">
+
+            <!-- FOREGROUND CONTENT: Everything else mapped exactly to certificate-template.jpeg -->
+            <div class="cert-content">
+                
+                <!-- Top Left -->
+                <div class="cert-reg" id="cert-reg-number"></div>
+
+                <!-- Top Center -->
+                <div class="cert-logo-area">
+                    <img src="../backend/images/nbte-logo.jpeg" class="cert-logo-img" alt="Logo">
+                    <div class="cert-logo-text">NATIONAL BUSINESS AND TECHNICAL<br>EXAMINATIONS BOARD (NABTEB)</div>
+                </div>
+
+                <!-- Top Right -->
+                <img id="cert-photo" src="" alt="Student" class="cert-photo">
+
+                <!-- Center Body -->
+                <div class="cert-body">
+                    <div class="cert-title-nsq">National Skills Qualification (NSQ)</div>
+                    <div class="cert-title-certificate">Certificate</div>
+                    <div class="cert-text-certify">This is to certify that</div>
+                    
+                    <div class="cert-name" id="cert-name"></div>
+                    
+                    <div class="cert-text-achieved">has achieved Full Award of</div>
+                    <div class="cert-level">LEVEL 3 IN MASONRY</div>
+                </div>
+
+                <!-- Bottom Footer (Signature is already in the background image) -->
+                
+                <!-- Bottom Center -->
+                <div class="cert-qr">
+                    <img id="cert-qr" src="" alt="QR" class="cert-qr-img">
+                    <span class="cert-qr-label">Scan to Verify</span>
+                </div>
+
+                <!-- Bottom Right -->
+                <div class="cert-date-area">
+                    <div class="cert-date-label">DATE OF AWARD</div>
+                    <div class="cert-date-box" id="cert-date"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="status-container"></div>
+
+<!-- html2pdf.js for downloading PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    const API_BASE = '../backend/api';
+    const DOMAIN = window.location.origin + window.location.pathname.replace(/\/frontend\/.*$/, '');
+    const params = new URLSearchParams(window.location.search);
+    const certId = params.get('id');
+
+    function formatDateShort(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+        return `${months[d.getMonth()]}, ${d.getFullYear()}`;
+    }
+
+    (async function loadCertificate() {
+        const container = document.getElementById('status-container');
+
+        if (!certId) {
+            container.innerHTML = `
+                <div class="status-card error">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <h4>No Certificate ID</h4>
+                    <p>Please provide a certificate ID.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = `<div class="status-card loading"><i class="bi bi-hourglass-split"></i><h4>Loading...</h4></div>`;
+
+        try {
+            const res = await fetch(`${API_BASE}/verify.php?id=${encodeURIComponent(certId)}`);
+            const data = await res.json();
+
+            if (data.valid) {
+                container.style.display = 'none';
+                document.getElementById('action-bar').style.display = 'flex';
+                document.getElementById('certificate-wrapper').style.display = 'flex';
+
+                const d = data.data;
+
+                document.getElementById('cert-name').textContent = d.name;
+                document.getElementById('cert-reg-number').textContent = d.reg_number;
+                document.getElementById('cert-date').textContent = formatDateShort(d.date_of_award);
+                document.getElementById('cert-photo').src = `../backend/${d.photo}`;
+
+                const verifyUrl = `${DOMAIN}/frontend/verify.html?id=${d.id}`;
+                document.getElementById('cert-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
+
+                document.title = `Certificate — ${d.name}`;
+            } else {
+                container.innerHTML = `<div class="status-card error"><i class="bi bi-x-octagon"></i><h4>Not Found</h4><p>Invalid ID.</p></div>`;
+            }
+        } catch (err) {
+            container.innerHTML = `<div class="status-card error"><i class="bi bi-wifi-off"></i><h4>Error</h4><p>Connection failed.</p></div>`;
+        }
+    })();
+
+    function downloadCertificate() {
+        const element = document.querySelector('.certificate-page');
+        const studentName = document.getElementById('cert-name').textContent || 'certificate';
+        const opt = {
+          margin:       0,
+          filename:     `${studentName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_certificate.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true, logging: false },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const btn = document.querySelector('.btn-download');
+        const origText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+        btn.disabled = true;
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error('PDF Generation failed:', err);
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            alert('Failed to generate PDF.');
+        });
+    }
+</script>
+
+</body>
+</html>

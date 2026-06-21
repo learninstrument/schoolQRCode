@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin dashboard for NBTE NSQ certificate generation and management.">
+    <title>Admin Dashboard — NBTE</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --green-dark: #1a6b3c;
+            --green: #228B22;
+            --green-medium: #2e8b57;
+            --green-light: #e8f5e9;
+            --green-lighter: #f1f8f2;
+            --green-glow: rgba(34, 139, 34, 0.2);
+            --sidebar-width: 260px;
+            --text-primary: #1a2e1a;
+            --text-secondary: #5a6e5a;
+            --text-muted: #8a9e8a;
+            --border-color: #d4e5d4;
+            --bg-body: #f4f7f4;
+            --bg-card: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* ══════════════════════════════════════════════════
+           SIDEBAR
+           ══════════════════════════════════════════════════ */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--green-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #fff;
+            padding: 2px;
+            object-fit: contain;
+        }
+        .sidebar-brand .brand-text {
+            line-height: 1.2;
+        }
+        .sidebar-brand .brand-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .sidebar-brand .brand-sub {
+            font-size: 0.68rem;
+            opacity: 0.6;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav .nav-section {
+            padding: 0.8rem 1.3rem 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.3rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .sidebar-nav .nav-item.active {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            border-left-color: #fff;
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-item i {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.3rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.82rem;
+            transition: color 0.2s;
+        }
+        .sidebar-footer a:hover { color: #fff; }
+
+        /* ══════════════════════════════════════════════════
+           MAIN CONTENT
+           ══════════════════════════════════════════════════ */
+        .main-area {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .top-header .page-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .top-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        /* ── View Panels ─────────────────────────────────── */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* ══════════════════════════════════════════════════
+           DASHBOARD
+           ══════════════════════════════════════════════════ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(34,139,34,0.08);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .stat-icon.total { background: var(--green-light); color: var(--green); }
+        .stat-icon.today { background: #e3f2fd; color: #1976d2; }
+        .stat-icon.month { background: #fff3e0; color: #e65100; }
+
+        .stat-info .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+        .stat-info .stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* Recent table */
+        .card-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .card-section-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-section-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            background: var(--green-lighter);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .data-table td {
+            padding: 0.85rem 1.5rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f4f0;
+            vertical-align: middle;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: #fafcfa; }
+
+        .student-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .student-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+        .student-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .badge-reg {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--green-dark);
+            background: var(--green-light);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        .btn-view {
+            background: var(--green);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s;
+        }
+        .btn-view:hover {
+            background: var(--green-dark);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .btn-update {
+            background: #ffc107;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-update:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+        /* ══════════════════════════════════════════════════
+           GENERATE FORM
+           ══════════════════════════════════════════════════ */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .form-floating > .form-control {
+            background: var(--green-lighter);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            height: 56px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-floating > .form-control:focus {
+            background: #fff;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-glow);
+            color: var(--text-primary);
+        }
+        .form-floating > label { color: var(--text-muted); }
+
+        .photo-upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            background: var(--green-lighter);
+        }
+        .photo-upload-zone:hover,
+        .photo-upload-zone.dragover {
+            border-color: var(--green);
+            background: var(--green-light);
+        }
+        .photo-upload-zone .upload-icon {
+            font-size: 2rem;
+            color: var(--green);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .photo-upload-zone .upload-text {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .photo-upload-zone .upload-text strong { color: var(--green); }
+        .photo-upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .photo-preview-container { display: none; text-align: center; }
+        .photo-preview-container.show { display: block; }
+        .photo-preview {
+            width: 100px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid var(--green);
+            margin: 0 auto 0.6rem;
+            display: block;
+        }
+        .photo-change-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            padding: 0.3rem 0.8rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .photo-change-btn:hover { border-color: var(--green); color: var(--green); }
+
+        .date-display {
+            background: var(--green-lighter);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .date-display .date-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--green-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .date-display .date-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .date-display .date-value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--green), var(--green-medium));
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--green-glow);
+            color: #fff;
+        }
+        .btn-generate:disabled { opacity: 0.6; transform: none; }
+
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 0.85rem 1.2rem;
+            font-size: 0.88rem;
+            animation: fadeSlideUp 0.4s ease;
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .spinner-border-sm { width: 1rem; height: 1rem; border-width: 2px; }
+
+        /* Generated cert success */
+        .gen-success {
+            background: var(--green-light);
+            border: 1px solid var(--green);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .gen-success h4 { color: var(--green-dark); font-size: 1rem; margin-bottom: 0.5rem; }
+        .gen-success p { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1rem; }
+
+        /* ══════════════════════════════════════════════════
+           ALL CERTIFICATES VIEW
+           ══════════════════════════════════════════════════ */
+        .search-bar {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .search-bar input {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-glow);
+        }
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+        .search-wrapper i {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        .search-wrapper input {
+            width: 100%;
+        }
+
+        /* ── Footer ── */
+        .admin-footer {
+            background: var(--green-dark);
+            color: #fff;
+            padding: 2rem;
+            margin-top: auto;
+        }
+        .admin-footer .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .admin-footer h6 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 0.5rem;
+        }
+        .admin-footer p, .admin-footer a {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            margin-bottom: 0;
+            text-decoration: none;
+        }
+        .admin-footer a:hover { color: #fff; }
+        .admin-footer .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1rem;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.35);
+            text-align: center;
+        }
+
+        /* ── Pagination ── */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .pagination-info {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* ══════════════════════════════════════════════════
+           MOBILE RESPONSIVE
+           ══════════════════════════════════════════════════ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 99;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            .main-area {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .content-area {
+                padding: 1.2rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .data-table { font-size: 0.82rem; }
+            .data-table th, .data-table td { padding: 0.6rem 0.8rem; }
+            .student-avatar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── Sidebar Overlay (mobile) ───── -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- ═══════════════════════════════════════════════════
+         SIDEBAR
+         ═══════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="../backend/images/nbte-logo.jpeg" alt="NBTE Logo">
+            <div class="brand-text">
+                <div class="brand-name">NBTE</div>
+                <div class="brand-sub">NBTE Admin Panel</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">Main</div>
+            <a class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            <a class="nav-item" data-view="generate" onclick="showView('generate')">
+                <i class="bi bi-plus-circle-fill"></i> Generate Certificate
+            </a>
+            <a class="nav-item" data-view="certificates" onclick="showView('certificates')">
+                <i class="bi bi-file-earmark-text-fill"></i> All Certificates
+            </a>
+
+            <div class="nav-section">Tools</div>
+            <a class="nav-item text-danger mt-4" onclick="logout()">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="https://nbte.gov.ng" target="_blank">
+                <i class="bi bi-globe"></i> nbte.gov.ng
+            </a>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════
+         MAIN AREA
+         ═══════════════════════════════════════════════════ -->
+    <div class="main-area">
+
+        <!-- Top Header -->
+        <div class="top-header">
+            <div class="d-flex align-items-center gap-3">
+                <button class="mobile-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="page-title" id="page-title">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <span style="font-size:0.82rem; color:var(--text-muted);" id="today-date"></span>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- ══════════════════════════════════════════════
+                 VIEW: DASHBOARD
+                 ══════════════════════════════════════════════ -->
+            <div class="view-panel active" id="view-dashboard">
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon total"><i class="bi bi-award-fill"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total">—</div>
+                            <div class="stat-label">Total Certificates</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon today"><i class="bi bi-calendar-day"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-today">—</div>
+                            <div class="stat-label">Generated Today</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon month"><i class="bi bi-calendar3"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-month">—</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Certificates -->
+                <div class="card-section">
+                    <div class="card-section-header">
+                        <h3><i class="bi bi-clock-history me-2"></i>Recent Certificates</h3>
+                        <a href="#" onclick="showView('certificates'); return false;" style="font-size:0.82rem; color:var(--green); text-decoration:none; font-weight:600;">
+                            View All <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div id="recent-table-area">
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass-split" style="animation: fadeSlideUp 1s infinite alternate"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                 VIEW: GENERATE CERTIFICATE
+                 ══════════════════════════════════════════════ -->
+            <div class="view-panel" id="view-generate">
+                <div class="form-card">
+                    <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.3rem;">
+                        <i class="bi bi-plus-circle me-2" style="color:var(--green)"></i>New Certificate
+                    </h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                        Fill in the student details to generate a new NSQ certificate.
+                    </p>
+
+                    <div id="alert-area"></div>
+
+                    <form id="cert-form" autocomplete="off" enctype="multipart/form-data">
+                        <!-- Photo -->
+                        <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">
+                            <i class="bi bi-camera me-1"></i> Student Passport Photo
+                        </label>
+                        <div class="mb-3">
+                            <div class="photo-upload-zone" id="photo-upload-zone">
+                                <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                                <div class="upload-text">
+                                    <strong>Click to upload</strong> or drag & drop<br>
+                                    <small>JPG/PNG, max 2MB</small>
+                                </div>
+                                <input type="file" id="studentPhoto" name="photo" accept="image/jpeg,image/png,image/jpg" required>
+                            </div>
+                            <div class="photo-preview-container mt-2" id="photo-preview-container">
+                                <img id="photo-preview" class="photo-preview" src="" alt="Preview">
+                                <button type="button" class="photo-change-btn" id="photo-change-btn">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Change
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="studentName" name="name" placeholder="Name" required>
+                            <label for="studentName"><i class="bi bi-person me-2"></i>Student Full Name</label>
+                        </div>
+
+                        <!-- Reg Number -->
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="regNumber" name="reg_number" placeholder="Reg" required value="NBTE/NSQ/" style="text-transform: uppercase;">
+                            <label for="regNumber"><i class="bi bi-hash me-2"></i>Registration Number</label>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="date-display mb-3">
+                            <div class="date-icon"><i class="bi bi-calendar-check"></i></div>
+                            <div>
+                                <div class="date-label">Date of Award (Auto)</div>
+                                <div class="date-value" id="date-display"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-generate w-100" id="btn-submit">
+                            <i class="bi bi-qr-code"></i>
+                            <span id="btn-text">Generate Certificate</span>
+                            <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </form>
+
+                    <div id="gen-result"></div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                 VIEW: ALL CERTIFICATES
+                 ══════════════════════════════════════════════ -->
+            <div class="view-panel" id="view-certificates">
+                <div class="search-bar">
+                    <div class="search-wrapper">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="search-input" placeholder="Search by name or registration number..." oninput="debounceSearch()">
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <div class="card-section-header">
+                        <h3><i class="bi bi-file-earmark-text me-2"></i>All Certificates</h3>
+                        <span style="font-size:0.82rem; color:var(--text-muted);" id="cert-count"></span>
+                    </div>
+                    <div id="all-table-area">
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass-split"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Update Name Modal -->
+        <div class="modal fade" id="updateNameModal" tabindex="-1" aria-labelledby="updateNameModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="updateNameModalLabel" style="font-size: 1.1rem; font-weight: 700;">Update Student Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="updateNameForm">
+                    <input type="hidden" id="updateStudentId">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="updateStudentName" required>
+                        <label for="updateStudentName">Student Full Name</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="updateRegNumber" required style="text-transform: uppercase;">
+                        <label for="updateRegNumber">Registration Number</label>
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitUpdateName()" style="background-color: var(--green); border-color: var(--green);">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Footer ──────────────────────────────────── -->
+        <footer class="admin-footer">
+            <div class="footer-grid">
+                <div>
+                    <h6>Head Office</h6>
+                    <p>Plot B Bida Road, PMB 2239<br>Kaduna, Nigeria</p>
+                </div>
+                <div>
+                    <h6>Liaison Office</h6>
+                    <p>Plot 644 Zambezi Crescent<br>Off Aguyi Ironsi Way<br>Maitama, Abuja</p>
+                </div>
+                <div>
+                    <h6>Training Center</h6>
+                    <p>Federal Technical College Kano</p>
+                </div>
+                <div>
+                    <h6>Contact</h6>
+                    <p><a href="mailto:enquiries@nbte.gov.ng"><i class="bi bi-envelope me-1"></i>enquiries@nbte.gov.ng</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 NBTE Certificate QR Code Verification System
+            </div>
+        </footer>
+
+    </div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ══════════════════════════════════════════════════════
+    // CONFIGURATION
+    // ══════════════════════════════════════════════════════
+    const API_BASE = '../backend/api';
+
+    // ── Date helpers ──
+    function formatDateFull(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    function formatDateShort(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    const today = new Date();
+    const todayISO = today.toISOString().split('T')[0];
+    document.getElementById('date-display').textContent = formatDateFull(todayISO);
+    document.getElementById('today-date').textContent = formatDateFull(todayISO);
+
+    // ══════════════════════════════════════════════════════
+    // SIDEBAR & NAVIGATION
+    // ══════════════════════════════════════════════════════
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebar-overlay').classList.toggle('show');
+    }
+
+    const viewTitles = {
+        dashboard: 'Dashboard',
+        generate: 'Generate Certificate',
+        certificates: 'All Certificates'
+    };
+
+    function showView(viewName) {
+        // Hide all panels
+        document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
+
+        // Show target
+        const panel = document.getElementById(`view-${viewName}`);
+        if (panel) panel.classList.add('active');
+
+        const navItem = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+        if (navItem) navItem.classList.add('active');
+
+        document.getElementById('page-title').textContent = viewTitles[viewName] || viewName;
+
+        // Load data
+        if (viewName === 'dashboard') loadDashboard();
+        if (viewName === 'certificates') loadAllCertificates();
+
+        // Close mobile sidebar
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('show');
+    }
+
+    // ══════════════════════════════════════════════════════
+    // DASHBOARD
+    // ══════════════════════════════════════════════════════
+    async function loadDashboard() {
+        try {
+            const res = await fetch(`${API_BASE}/stats.php`);
+            const json = await res.json();
+
+            if (json.success) {
+                const d = json.data;
+                document.getElementById('stat-total').textContent = d.total;
+                document.getElementById('stat-today').textContent = d.today;
+                document.getElementById('stat-month').textContent = d.this_month;
+
+                renderRecentTable(d.recent);
+            }
+        } catch (err) {
+            console.error('Failed to load dashboard:', err);
+        }
+    }
+
+    function renderRecentTable(certs) {
+        const area = document.getElementById('recent-table-area');
+
+        if (!certs || certs.length === 0) {
+            area.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>No certificates generated yet.</p></div>`;
+            return;
+        }
+
+        let rows = certs.map(c => `
+            <tr>
+                <td><span class="student-name">${escapeHtml(c.name)}</span></td>
+                <td><span class="badge-reg">${escapeHtml(c.reg_number)}</span></td>
+                <td>${formatDateShort(c.date_of_award)}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a class="btn-view" href="certificate.html?id=${c.id}" target="_blank">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <button class="btn-update" onclick="openUpdateModal(${c.id}, '${escapeAttr(c.name)}', '${escapeAttr(c.reg_number)}')">
+                            <i class="bi bi-pencil-square"></i> Update
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        area.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Reg. Number</th>
+                        <th>Date of Award</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ALL CERTIFICATES
+    // ══════════════════════════════════════════════════════
+    let searchTimeout;
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => loadAllCertificates(), 300);
+    }
+
+    async function loadAllCertificates() {
+        const search = document.getElementById('search-input').value.trim();
+        const area = document.getElementById('all-table-area');
+        const countEl = document.getElementById('cert-count');
+
+        try {
+            let url = `${API_BASE}/list.php`;
+            if (search) url += `?search=${encodeURIComponent(search)}`;
+
+            const res = await fetch(url);
+            const json = await res.json();
+
+            if (json.success) {
+                countEl.textContent = `${json.count} certificate${json.count !== 1 ? 's' : ''}`;
+
+                if (json.data.length === 0) {
+                    area.innerHTML = `<div class="empty-state"><i class="bi bi-search"></i><p>No certificates found${search ? ' for "' + escapeHtml(search) + '"' : ''}.</p></div>`;
+                    return;
+                }
+
+                let rows = json.data.map(c => `
+                    <tr>
+                        <td>
+                            <div class="student-cell">
+                                <img class="student-avatar" src="../backend/${escapeAttr(c.photo)}" alt="" onerror="this.style.display='none'">
+                                <span class="student-name">${escapeHtml(c.name)}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge-reg">${escapeHtml(c.reg_number)}</span></td>
+                        <td>${formatDateShort(c.date_of_award)}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a class="btn-view" href="certificate.html?id=${c.id}" target="_blank">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <button class="btn-update" onclick="openUpdateModal(${c.id}, '${escapeAttr(c.name)}', '${escapeAttr(c.reg_number)}')">
+                                    <i class="bi bi-pencil-square"></i> Update
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                area.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Reg. Number</th>
+                                <th>Date of Award</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="pagination-bar">
+                        <span class="pagination-info">Showing ${json.count} result${json.count !== 1 ? 's' : ''}</span>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Failed to load certificates:', err);
+            area.innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-triangle"></i><p>Failed to load certificates. Is the server running?</p></div>`;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // GENERATE CERTIFICATE
+    // ══════════════════════════════════════════════════════
+    const form            = document.getElementById('cert-form');
+    const alertArea       = document.getElementById('alert-area');
+    const btnSubmit       = document.getElementById('btn-submit');
+    const btnText         = document.getElementById('btn-text');
+    const btnSpinner      = document.getElementById('btn-spinner');
+    const photoInput      = document.getElementById('studentPhoto');
+    const photoUploadZone = document.getElementById('photo-upload-zone');
+    const photoPreview    = document.getElementById('photo-preview');
+    const photoPreviewCont = document.getElementById('photo-preview-container');
+    const photoChangeBtn  = document.getElementById('photo-change-btn');
+    const genResult       = document.getElementById('gen-result');
+
+    let selectedPhotoDataUrl = null;
+
+    photoInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) handlePhotoFile(e.target.files[0]);
+    });
+
+    photoUploadZone.addEventListener('dragover', (e) => { e.preventDefault(); photoUploadZone.classList.add('dragover'); });
+    photoUploadZone.addEventListener('dragleave', () => { photoUploadZone.classList.remove('dragover'); });
+    photoUploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        photoUploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            photoInput.files = dt.files;
+            handlePhotoFile(file);
+        }
+    });
+
+    function handlePhotoFile(file) {
+        if (file.size > 2 * 1024 * 1024) { showAlert('Photo must be less than 2MB.', 'warning'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            selectedPhotoDataUrl = e.target.result;
+            photoPreview.src = e.target.result;
+            photoUploadZone.style.display = 'none';
+            photoPreviewCont.classList.add('show');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    photoChangeBtn.addEventListener('click', () => {
+        photoInput.value = '';
+        selectedPhotoDataUrl = null;
+        photoUploadZone.style.display = 'block';
+        photoPreviewCont.classList.remove('show');
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAlert();
+        genResult.innerHTML = '';
+
+        const name = document.getElementById('studentName').value.trim();
+        const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
+
+        if (!name) { showAlert("Please enter the student's name.", 'warning'); return; }
+        if (!regNumber) { showAlert('Please enter the registration number.', 'warning'); return; }
+        if (!photoInput.files[0]) { showAlert('Please upload a student passport photo.', 'warning'); return; }
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('reg_number', regNumber);
+        formData.append('photo', photoInput.files[0]);
+
+        setLoading(true);
+
+        try {
+            const res = await fetch(`${API_BASE}/generate.php`, { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.success) {
+                const id = data.data.id;
+                showAlert(`Certificate #${id} generated successfully for ${escapeHtml(data.data.name)}!`, 'success');
+                genResult.innerHTML = `
+                    <div class="gen-success">
+                        <h4><i class="bi bi-check-circle-fill me-2"></i>Certificate Created!</h4>
+                        <p>Certificate #${id} for <strong>${escapeHtml(data.data.name)}</strong></p>
+                        <a class="btn-view" href="certificate.html?id=${id}" target="_blank" style="padding:0.5rem 1.2rem; font-size:0.88rem;">
+                            <i class="bi bi-eye"></i> View Certificate
+                        </a>
+                    </div>
+                `;
+                // Reset form
+                form.reset();
+                selectedPhotoDataUrl = null;
+                photoUploadZone.style.display = 'block';
+                photoPreviewCont.classList.remove('show');
+            } else {
+                showAlert(data.message || 'Failed to generate certificate.', 'danger');
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('Network error. Ensure the backend server is running.', 'danger');
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    function showAlert(message, type) {
+        alertArea.innerHTML = `
+            <div class="alert alert-${type} alert-custom alert-dismissible fade show" role="alert">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'}-fill me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+    }
+    function clearAlert() { alertArea.innerHTML = ''; }
+    function setLoading(loading) {
+        btnSubmit.disabled = loading;
+        btnText.textContent = loading ? 'Generating...' : 'Generate Certificate';
+        btnSpinner.classList.toggle('d-none', !loading);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // UTILITIES
+    // ══════════════════════════════════════════════════════
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    function escapeAttr(text) {
+        return text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ══════════════════════════════════════════════════════
+    // AUTHENTICATION CHECK
+    // ══════════════════════════════════════════════════════
+    async function checkAuth() {
+        try {
+            const res = await fetch(`${API_BASE}/auth_check.php`);
+            const data = await res.json();
+            if (!data.logged_in) {
+                window.location.replace('login.html');
+            } else {
+                // Load dashboard only after auth is confirmed
+                loadDashboard();
+            }
+        } catch (err) {
+            console.error('Auth check failed:', err);
+            window.location.replace('login.html');
+        }
+    }
+
+    async function logout() {
+        try {
+            await fetch(`${API_BASE}/logout.php`);
+            window.location.replace('login.html');
+        } catch (err) {
+            window.location.replace('login.html');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // UPDATE STUDENT NAME
+    // ══════════════════════════════════════════════════════
+    let updateModalInstance = null;
+
+    function openUpdateModal(id, currentName, currentRegNumber) {
+        document.getElementById('updateStudentId').value = id;
+        document.getElementById('updateStudentName').value = currentName;
+        document.getElementById('updateRegNumber').value = currentRegNumber;
+        
+        if (!updateModalInstance) {
+            updateModalInstance = new bootstrap.Modal(document.getElementById('updateNameModal'));
+        }
+        updateModalInstance.show();
+    }
+
+    async function submitUpdateName() {
+        const id = document.getElementById('updateStudentId').value;
+        const name = document.getElementById('updateStudentName').value.trim();
+        const regNumber = document.getElementById('updateRegNumber').value.trim().toUpperCase();
+
+        if (!name || !regNumber) {
+            alert('Name and Registration Number cannot be empty');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('name', name);
+        formData.append('reg_number', regNumber);
+
+        const btn = document.querySelector('#updateNameModal .btn-primary');
+        const origText = btn.textContent;
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${API_BASE}/update_name.php`, { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.success) {
+                updateModalInstance.hide();
+                // Reload views to show updated name
+                if (document.getElementById('view-dashboard').classList.contains('active')) {
+                    loadDashboard();
+                }
+                if (document.getElementById('view-certificates').classList.contains('active')) {
+                    loadAllCertificates();
+                }
+            } else {
+                alert(data.message || 'Failed to update name');
+            }
+        } catch (err) {
+            console.error('Update failed:', err);
+            alert('Network error. Failed to update name.');
+        } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
+        }
+    }
+
+    // ── Initial Load ──
+    checkAuth();
+</script>
+
+</body>
+</html>
