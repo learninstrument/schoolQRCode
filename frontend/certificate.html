@@ -406,7 +406,6 @@
 
 <script>
     const API_BASE = '../backend/api';
-    const DOMAIN = window.location.origin + window.location.pathname.replace(/\/frontend\/.*$/, '');
     const params = new URLSearchParams(window.location.search);
     const certId = params.get('id');
 
@@ -447,7 +446,7 @@
                 document.getElementById('cert-date').textContent = formatDateShort(d.date_of_award);
                 document.getElementById('cert-photo').src = `../backend/${d.photo}`;
 
-                const verifyUrl = `${DOMAIN}/frontend/verify.html?id=${d.id}`;
+                const verifyUrl = new URL(`verify.html?id=${d.id}`, window.location.href).href;
                 document.getElementById('cert-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
 
                 document.title = `Certificate — ${d.name}`;
