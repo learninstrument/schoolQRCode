@@ -1,0 +1,26 @@
+# Deny direct access to all files by default
+Order Deny,Allow
+Deny from all
+
+# Allow access to API endpoints
+<Files "*.php">
+    <FilesMatch "^(verify|generate|list|stats|auth_check|login|logout)\.php$">
+        Order Allow,Deny
+        Allow from all
+    </FilesMatch>
+</Files>
+
+# Allow access to images and uploads (for photos, logo, certificate template)
+<FilesMatch "\.(jpg|jpeg|png|gif|svg|webp)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Deny access to db.php and config files
+<FilesMatch "^(db|config|reset)\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes
