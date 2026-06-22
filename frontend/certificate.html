@@ -446,7 +446,10 @@
                 document.getElementById('cert-date').textContent = formatDateShort(d.date_of_award);
                 document.getElementById('cert-photo').src = `../backend/${d.photo}`;
 
-                const verifyUrl = new URL(`verify.html?id=${d.id}`, window.location.href).href;
+                // Build verify URL: certificate.html and verify.html are in the same folder
+                const currentPath = window.location.pathname;
+                const baseDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+                const verifyUrl = window.location.origin + baseDir + 'verify.html?id=' + d.id;
                 document.getElementById('cert-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
 
                 document.title = `Certificate — ${d.name}`;
