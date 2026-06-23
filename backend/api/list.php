@@ -21,18 +21,22 @@ try {
 
     if (!empty($search)) {
         $stmt = $pdo->prepare(
-            "SELECT id, name, photo, reg_number, date_of_award, created_at 
-             FROM certificates 
-             WHERE name LIKE :search OR reg_number LIKE :search2
-             ORDER BY id DESC"
+            "SELECT c.id, c.name, c.photo, c.reg_number, c.level, c.date_of_award, c.created_at,
+                    COALESCE(co.course_name, '') AS course_name
+             FROM certificates c
+             LEFT JOIN courses co ON c.course_id = co.id
+             WHERE c.name LIKE :search OR c.reg_number LIKE :search2
+             ORDER BY c.id DESC"
         );
         $searchTerm = "%{$search}%";
         $stmt->execute(['search' => $searchTerm, 'search2' => $searchTerm]);
     } else {
         $stmt = $pdo->query(
-            "SELECT id, name, photo, reg_number, date_of_award, created_at 
-             FROM certificates 
-             ORDER BY id DESC"
+            "SELECT c.id, c.name, c.photo, c.reg_number, c.level, c.date_of_award, c.created_at,
+                    COALESCE(co.course_name, '') AS course_name
+             FROM certificates c
+             LEFT JOIN courses co ON c.course_id = co.id
+             ORDER BY c.id DESC"
         );
     }
 

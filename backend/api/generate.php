@@ -26,6 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ── Validate Fields ─────────────────────────────────────
 $name       = trim($_POST['name'] ?? '');
 $regNumber  = trim($_POST['reg_number'] ?? '');
+$courseId   = filter_var($_POST['course_id'] ?? '', FILTER_VALIDATE_INT);
+$level      = trim($_POST['level'] ?? '');
+$dateOfAward = trim($_POST['date_of_award'] ?? '');
 
 if (empty($name)) {
     http_response_code(400);
@@ -41,6 +44,33 @@ if (empty($regNumber)) {
     echo json_encode([
         'success' => false,
         'message' => 'Registration number is required.'
+    ]);
+    exit();
+}
+
+if (!$courseId) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please select a course.'
+    ]);
+    exit();
+}
+
+if (empty($level)) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please select a level.'
+    ]);
+    exit();
+}
+
+if (empty($dateOfAward) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateOfAward)) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please select a valid date of award.'
     ]);
     exit();
 }
@@ -121,19 +151,18 @@ if (!move_uploaded_file($photo['tmp_name'], $filePath)) {
 // Relative path for storage in DB (relative to backend folder)
 $photoDbPath = 'uploads/' . $filename;
 
-// ── Auto-generate date of award ─────────────────────────
-$dateOfAward = date('Y-m-d');
-
 // ── Insert into Database ────────────────────────────────
 try {
     $stmt = $pdo->prepare(
-        "INSERT INTO certificates (name, photo, reg_number, date_of_award) 
-         VALUES (:name, :photo, :reg_number, :date_of_award)"
+        "INSERT INTO certificates (name, photo, reg_number, course_id, level, date_of_award) 
+         VALUES (:name, :photo, :reg_number, :course_id, :level, :date_of_award)"
     );
     $stmt->execute([
         'name'          => $name,
         'photo'         => $photoDbPath,
         'reg_number'    => $regNumber,
+        'course_id'     => $courseId,
+        'level'         => $level,
         'date_of_award' => $dateOfAward,
     ]);
 

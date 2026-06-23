@@ -7,7 +7,7 @@
     <title>View Certificate — NBTE</title>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
@@ -160,13 +160,34 @@
         }
 
         /* ── Photo (Top Right) ── */
-        .cert-photo {
+        .cert-photo-wrapper {
             position: absolute;
             top: 10%;
             right: 8%;
             width: 38mm;
             height: 48mm;
+        }
+        .cert-photo {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+        }
+        .cert-photo-wrapper::after {
+            content: 'NABTEB';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.55); /* Faint box */
+            text-align: center;
+            padding: 3px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 14pt;
+            font-weight: 900;
+            color: #800000; /* Oxblood red */
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            pointer-events: none;
         }
 
         /* ── Body Text (Center) ── */
@@ -205,10 +226,9 @@
         }
 
         .cert-name {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 32pt;
-            font-weight: 700;
+            font-family: 'Alex Brush', cursive;
+            font-size: 36pt;
+            font-weight: 400;
             color: #111;
             display: inline-block;
             border-bottom: 1.5px solid #222;
@@ -219,18 +239,21 @@
 
         .cert-text-achieved {
             font-family: 'Inter', sans-serif;
-            font-size: 14pt;
+            font-size: 18pt;
             font-weight: 500;
             color: #222;
             margin-bottom: 3mm;
         }
 
-        .cert-level {
+        .cert-course-big {
             font-family: 'Inter', sans-serif;
-            font-size: 18pt;
-            font-weight: 800;
+            font-size: 26pt;
+            font-weight: 900;
             color: var(--cert-blue);
             text-transform: uppercase;
+            line-height: 1.2;
+            margin: 0 auto 5mm auto;
+            max-width: 130mm; /* Prevent reaching ends of certificate */
         }
 
         /* ── Footer ── */
@@ -362,12 +385,14 @@
 
                 <!-- Top Center -->
                 <div class="cert-logo-area">
-                    <img src="../backend/images/nbte-logo.jpeg" class="cert-logo-img" alt="Logo">
+                    <img src="../backend/images/nbte-logo1.png" class="cert-logo-img" alt="Logo">
                     <div class="cert-logo-text">NATIONAL BUSINESS AND TECHNICAL<br>EXAMINATIONS BOARD (NABTEB)</div>
                 </div>
 
                 <!-- Top Right -->
-                <img id="cert-photo" src="" alt="Student" class="cert-photo">
+                <div class="cert-photo-wrapper">
+                    <img id="cert-photo" src="" alt="Student" class="cert-photo">
+                </div>
 
                 <!-- Center Body -->
                 <div class="cert-body">
@@ -378,7 +403,9 @@
                     <div class="cert-name" id="cert-name"></div>
                     
                     <div class="cert-text-achieved">has achieved Full Award of</div>
-                    <div class="cert-level">LEVEL 3 IN MASONRY</div>
+                    <div class="cert-course-big">
+                        <span id="cert-level"></span> IN <span id="cert-course"></span>
+                    </div>
                 </div>
 
                 <!-- Bottom Footer (Signature is already in the background image) -->
@@ -445,6 +472,8 @@
                 document.getElementById('cert-reg-number').textContent = d.reg_number;
                 document.getElementById('cert-date').textContent = formatDateShort(d.date_of_award);
                 document.getElementById('cert-photo').src = `../backend/${d.photo}`;
+                document.getElementById('cert-level').textContent = d.level || 'LEVEL';
+                document.getElementById('cert-course').textContent = d.course_name || 'N/A';
 
                 // Build verify URL: certificate.html and verify.html are in the same folder
                 const currentPath = window.location.pathname;

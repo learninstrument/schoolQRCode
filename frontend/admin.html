@@ -680,7 +680,7 @@
          ═══════════════════════════════════════════════════ -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <img src="../backend/images/nbte-logo.jpeg" alt="NBTE Logo">
+            <img src="../backend/images/nbte-logo1.png" alt="NBTE Logo">
             <div class="brand-text">
                 <div class="brand-name">NBTE</div>
                 <div class="brand-sub">NBTE Admin Panel</div>
@@ -700,6 +700,9 @@
             </a>
 
             <div class="nav-section">Tools</div>
+            <a class="nav-item" data-view="courses" onclick="showView('courses')">
+                <i class="bi bi-book-fill"></i> Manage Courses
+            </a>
             <a class="nav-item text-danger mt-4" onclick="logout()">
                 <i class="bi bi-box-arrow-left"></i> Logout
             </a>
@@ -827,13 +830,37 @@
                             <label for="regNumber"><i class="bi bi-hash me-2"></i>Registration Number</label>
                         </div>
 
-                        <!-- Date -->
-                        <div class="date-display mb-3">
-                            <div class="date-icon"><i class="bi bi-calendar-check"></i></div>
-                            <div>
-                                <div class="date-label">Date of Award (Auto)</div>
-                                <div class="date-value" id="date-display"></div>
-                            </div>
+                        <!-- Level Dropdown -->
+                        <div class="mb-3">
+                            <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">
+                                <i class="bi bi-bar-chart-steps me-1"></i> Level
+                            </label>
+                            <select class="form-select" id="levelSelect" name="level" required
+                                    style="background:var(--green-lighter); border:1px solid var(--border-color); border-radius:10px; padding:0.7rem 1rem; font-size:0.95rem; color:var(--text-primary);">
+                                <option value="" disabled selected>Select level...</option>
+                                <option value="Level 1">Level 1</option>
+                                <option value="Level 2">Level 2</option>
+                                <option value="Level 3">Level 3</option>
+                                <option value="Level 4">Level 4</option>
+                                <option value="Level 5">Level 5</option>
+                            </select>
+                        </div>
+
+                        <!-- Course Dropdown -->
+                        <div class="mb-3">
+                            <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">
+                                <i class="bi bi-book me-1"></i> Course
+                            </label>
+                            <select class="form-select" id="courseSelect" name="course_id" required
+                                    style="background:var(--green-lighter); border:1px solid var(--border-color); border-radius:10px; padding:0.7rem 1rem; font-size:0.95rem; color:var(--text-primary);">
+                                <option value="" disabled selected>Select a course...</option>
+                            </select>
+                        </div>
+
+                        <!-- Date of Award -->
+                        <div class="form-floating mb-3">
+                            <input type="date" class="form-control" id="dateOfAward" name="date_of_award" required>
+                            <label for="dateOfAward"><i class="bi bi-calendar-check me-2"></i>Date of Award</label>
                         </div>
 
                         <button type="submit" class="btn btn-generate w-100" id="btn-submit">
@@ -844,6 +871,43 @@
                     </form>
 
                     <div id="gen-result"></div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                 VIEW: MANAGE COURSES
+                 ══════════════════════════════════════════════ -->
+            <div class="view-panel" id="view-courses">
+                <div class="form-card mb-4">
+                    <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.3rem;">
+                        <i class="bi bi-plus-circle me-2" style="color:var(--green)"></i>Add New Course
+                    </h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                        Add a course that can be selected when generating certificates.
+                    </p>
+                    <div id="course-alert-area"></div>
+                    <form id="course-form" class="d-flex gap-2" autocomplete="off">
+                        <div class="form-floating flex-grow-1">
+                            <input type="text" class="form-control" id="newCourseName" placeholder="Course" required>
+                            <label for="newCourseName"><i class="bi bi-book me-2"></i>Course Name (e.g. MASONRY)</label>
+                        </div>
+                        <button type="submit" class="btn btn-generate" style="white-space:nowrap;">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-section">
+                    <div class="card-section-header">
+                        <h3><i class="bi bi-book me-2"></i>All Courses</h3>
+                        <span style="font-size:0.82rem; color:var(--text-muted);" id="course-count"></span>
+                    </div>
+                    <div id="courses-table-area">
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass-split"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -951,8 +1015,9 @@
 
     const today = new Date();
     const todayISO = today.toISOString().split('T')[0];
-    document.getElementById('date-display').textContent = formatDateFull(todayISO);
     document.getElementById('today-date').textContent = formatDateFull(todayISO);
+    // Set default date for the date picker
+    document.getElementById('dateOfAward').value = todayISO;
 
     // ══════════════════════════════════════════════════════
     // SIDEBAR & NAVIGATION
@@ -965,7 +1030,8 @@
     const viewTitles = {
         dashboard: 'Dashboard',
         generate: 'Generate Certificate',
-        certificates: 'All Certificates'
+        certificates: 'All Certificates',
+        courses: 'Manage Courses'
     };
 
     function showView(viewName) {
@@ -985,6 +1051,8 @@
         // Load data
         if (viewName === 'dashboard') loadDashboard();
         if (viewName === 'certificates') loadAllCertificates();
+        if (viewName === 'courses') loadCourses();
+        if (viewName === 'generate') loadCourseDropdown();
 
         // Close mobile sidebar
         document.getElementById('sidebar').classList.remove('open');
@@ -1024,6 +1092,7 @@
             <tr>
                 <td><span class="student-name">${escapeHtml(c.name)}</span></td>
                 <td><span class="badge-reg">${escapeHtml(c.reg_number)}</span></td>
+                <td>${escapeHtml(c.level ? c.level + ' in ' : '')}${escapeHtml(c.course_name || '—')}</td>
                 <td>${formatDateShort(c.date_of_award)}</td>
                 <td>
                     <div class="d-flex gap-2">
@@ -1047,6 +1116,7 @@
                     <tr>
                         <th>Student Name</th>
                         <th>Reg. Number</th>
+                        <th>Course</th>
                         <th>Date of Award</th>
                         <th>Action</th>
                     </tr>
@@ -1094,6 +1164,7 @@
                             </div>
                         </td>
                         <td><span class="badge-reg">${escapeHtml(c.reg_number)}</span></td>
+                        <td>${escapeHtml(c.level ? c.level + ' in ' : '')}${escapeHtml(c.course_name || '—')}</td>
                         <td>${formatDateShort(c.date_of_award)}</td>
                         <td>
                             <div class="d-flex gap-2">
@@ -1117,6 +1188,7 @@
                             <tr>
                                 <th>Student</th>
                                 <th>Reg. Number</th>
+                                <th>Course</th>
                                 <th>Date of Award</th>
                                 <th>Action</th>
                             </tr>
@@ -1195,14 +1267,23 @@
 
         const name = document.getElementById('studentName').value.trim();
         const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
+        const level = document.getElementById('levelSelect').value;
+        const courseId = document.getElementById('courseSelect').value;
+        const dateOfAward = document.getElementById('dateOfAward').value;
 
         if (!name) { showAlert("Please enter the student's name.", 'warning'); return; }
         if (!regNumber) { showAlert('Please enter the registration number.', 'warning'); return; }
+        if (!level) { showAlert('Please select a level.', 'warning'); return; }
+        if (!courseId) { showAlert('Please select a course.', 'warning'); return; }
+        if (!dateOfAward) { showAlert('Please select a date of award.', 'warning'); return; }
         if (!photoInput.files[0]) { showAlert('Please upload a student passport photo.', 'warning'); return; }
 
         const formData = new FormData();
         formData.append('name', name);
         formData.append('reg_number', regNumber);
+        formData.append('level', level);
+        formData.append('course_id', courseId);
+        formData.append('date_of_award', dateOfAward);
         formData.append('photo', photoInput.files[0]);
 
         setLoading(true);
@@ -1384,6 +1465,108 @@
         } catch (err) {
             console.error('Delete failed:', err);
             alert('Network error. Failed to delete certificate.');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // COURSES MANAGEMENT
+    // ══════════════════════════════════════════════════════
+    async function loadCourseDropdown() {
+        try {
+            const res = await fetch(`${API_BASE}/courses.php`);
+            const json = await res.json();
+            if (json.success) {
+                const select = document.getElementById('courseSelect');
+                const currentVal = select.value;
+                select.innerHTML = '<option value="" disabled selected>Select a course...</option>';
+                json.data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.course_name;
+                    select.appendChild(opt);
+                });
+                if (currentVal) select.value = currentVal;
+            }
+        } catch (err) {
+            console.error('Failed to load courses:', err);
+        }
+    }
+
+    async function loadCourses() {
+        const area = document.getElementById('courses-table-area');
+        const countEl = document.getElementById('course-count');
+        try {
+            const res = await fetch(`${API_BASE}/courses.php`);
+            const json = await res.json();
+            if (json.success) {
+                countEl.textContent = `${json.count} course${json.count !== 1 ? 's' : ''}`;
+                if (json.data.length === 0) {
+                    area.innerHTML = `<div class="empty-state"><i class="bi bi-book"></i><p>No courses added yet. Add one above.</p></div>`;
+                    return;
+                }
+                let rows = json.data.map(c => `
+                    <tr>
+                        <td><strong>${escapeHtml(c.course_name)}</strong></td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteCourse(${c.id}, '${escapeAttr(c.course_name)}')">
+                                <i class="bi bi-trash3"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                area.innerHTML = `
+                    <table class="data-table">
+                        <thead><tr><th>Course Name</th><th>Action</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+            }
+        } catch (err) {
+            console.error('Failed to load courses:', err);
+            area.innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-triangle"></i><p>Failed to load courses.</p></div>`;
+        }
+    }
+
+    document.getElementById('course-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameInput = document.getElementById('newCourseName');
+        const courseName = nameInput.value.trim();
+        const alertArea = document.getElementById('course-alert-area');
+
+        if (!courseName) return;
+
+        const formData = new FormData();
+        formData.append('course_name', courseName);
+
+        try {
+            const res = await fetch(`${API_BASE}/courses.php`, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                alertArea.innerHTML = `<div class="alert alert-success alert-custom alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>${escapeHtml(data.message)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+                nameInput.value = '';
+                loadCourses();
+            } else {
+                alertArea.innerHTML = `<div class="alert alert-danger alert-custom alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i>${escapeHtml(data.message)}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            }
+        } catch (err) {
+            alertArea.innerHTML = `<div class="alert alert-danger alert-custom">Network error.</div>`;
+        }
+    });
+
+    async function deleteCourse(id, name) {
+        if (!confirm(`Delete course "${name}"?`)) return;
+        const formData = new FormData();
+        formData.append('id', id);
+        try {
+            const res = await fetch(`${API_BASE}/delete_course.php`, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                loadCourses();
+            } else {
+                alert(data.message || 'Failed to delete course.');
+            }
+        } catch (err) {
+            alert('Network error.');
         }
     }
 

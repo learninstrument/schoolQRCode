@@ -37,8 +37,11 @@ try {
 
     // Recent 5 certificates
     $recentStmt = $pdo->query(
-        "SELECT id, name, reg_number, date_of_award, created_at 
-         FROM certificates ORDER BY id DESC LIMIT 5"
+        "SELECT c.id, c.name, c.reg_number, c.level, c.date_of_award, c.created_at,
+                COALESCE(co.course_name, '') AS course_name
+         FROM certificates c
+         LEFT JOIN courses co ON c.course_id = co.id
+         ORDER BY c.id DESC LIMIT 5"
     );
     $recent = $recentStmt->fetchAll();
 

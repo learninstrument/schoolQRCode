@@ -386,7 +386,7 @@
     <nav class="navbar navbar-custom">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="../backend/images/nbte-logo.jpeg" alt="NBTE Logo" class="brand-logo">
+                <img src="../backend/images/nbte-logo1.png" alt="NBTE Logo" class="brand-logo">
                 NBTE
             </a>
         </div>
@@ -410,7 +410,7 @@
     <footer class="institution-footer">
         <div class="container">
             <div class="text-center mb-4">
-                <img src="../backend/images/nbte-logo.jpeg" alt="NBTE Logo" class="footer-logo">
+                <img src="../backend/images/nbte-logo1.png" alt="NBTE Logo" class="footer-logo">
                 <p class="footer-institution-name">National Board for Technical Education</p>
                 <p class="footer-institution-sub">Nigerian Skills Qualifications Framework (NSQF)</p>
             </div>
@@ -540,6 +540,24 @@
                         <div class="detail-text">
                             <div class="detail-label">Date of Award</div>
                             <div class="detail-value">${formatDate(data.date_of_award)}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon reg">
+                            <i class="bi bi-bar-chart-steps"></i>
+                        </div>
+                        <div class="detail-text">
+                            <div class="detail-label">Level</div>
+                            <div class="detail-value">${escapeHtml(data.level || 'N/A')}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon reg">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="detail-text">
+                            <div class="detail-label">Course</div>
+                            <div class="detail-value">${escapeHtml(data.course_name || 'N/A')}</div>
                         </div>
                     </div>
                     <div class="detail-item">

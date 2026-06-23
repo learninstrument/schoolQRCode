@@ -33,8 +33,11 @@ if (!$id || $id < 1) {
 try {
     // Query the database using prepared statement
     $stmt = $pdo->prepare(
-        "SELECT id, name, photo, reg_number, date_of_award 
-         FROM certificates WHERE id = :id LIMIT 1"
+        "SELECT c.id, c.name, c.photo, c.reg_number, c.level, c.date_of_award,
+                COALESCE(co.course_name, '') AS course_name
+         FROM certificates c
+         LEFT JOIN courses co ON c.course_id = co.id
+         WHERE c.id = :id LIMIT 1"
     );
     $stmt->execute(['id' => $id]);
     $certificate = $stmt->fetch();
@@ -49,7 +52,9 @@ try {
                 'name'          => $certificate['name'],
                 'photo'         => $certificate['photo'],
                 'reg_number'    => $certificate['reg_number'],
-                'date_of_award' => $certificate['date_of_award']
+                'level'         => $certificate['level'],
+                'date_of_award' => $certificate['date_of_award'],
+                'course_name'   => $certificate['course_name']
             ]
         ]);
     } else {
